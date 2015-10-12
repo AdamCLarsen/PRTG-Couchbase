@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.WebSockets;
 using System.Runtime.Remoting;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,7 +28,7 @@ namespace Prtg.Sensor.Couchbase
 
 				var result = Read(new RequestPrams
 				{
-					ServerAndPort = "localhost:8091",
+					ServerAndPort = new List<string> { "localhost:8091" },
 					BucketName = "beer-sample",
 					User = "Administrator",
 					Password = "password"
@@ -52,22 +54,54 @@ namespace Prtg.Sensor.Couchbase
 		/// <exception cref="ArgumentNullException">Value is null. </exception>
 		/// <exception cref="ArgumentException">Stream does not support reading. </exception>
 		/// <exception cref="HttpRequestException"></exception>
+		/// <exception cref="WebSocketException">Condition.</exception>
+		/// <exception cref="WebException">Condition.</exception>
 		public static async Task<Prtg> Read(RequestPrams request)
 		{
-			var client = new HttpClient
+			// Allow for multiple server.  If the first server returns any kind of error, we will try the next servers.
+			using (var servers = request.ServerAndPort.GetEnumerator())
 			{
-				// http://localhost:8091/pools/default/buckets/TestClient_account/stats?zoom=minute
-				BaseAddress = new Uri("http://" + request.ServerAndPort + "/pools/default/buckets/")
-			};
-
-			client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(request.User + ":" + request.Password)));
-			using (var result = await client.GetAsync(Uri.EscapeUriString(request.BucketName) + @"/stats?zoom=minute"))
-			{
-				result.EnsureSuccessStatusCode();
-				using (var s = await result.Content.ReadAsStreamAsync())
+				if (!servers.MoveNext())
+					throw new ArgumentException("No Servers specified", "request");
+				while (true)
 				{
-					var reader = new JsonTextReader(new StreamReader(s));
-					return new Prtg { Results = (ReadData(JToken.Load(reader)).ToList()) };
+					var client = new HttpClient
+					{
+						// http://localhost:8091/pools/default/buckets/TestClient_account/stats?zoom=minute
+						BaseAddress = new Uri("http://" + request.ServerAndPort + "/pools/default/buckets/")
+					};
+
+					client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(request.User + ":" + request.Password)));
+					try
+					{
+						using (var result = await client.GetAsync(Uri.EscapeUriString(request.BucketName) + @"/stats?zoom=minute"))
+						{
+							result.EnsureSuccessStatusCode();
+							using (var s = await result.Content.ReadAsStreamAsync())
+							{
+								var reader = new JsonTextReader(new StreamReader(s));
+								return new Prtg { Results = (ReadData(JToken.Load(reader)).ToList()) };
+							}
+						}
+					}
+					// If it's an exception that we know is from connecting to the server
+					// let's try the next one
+					// TODO: Report back error status.
+					catch (WebSocketException)
+					{
+						if (!servers.MoveNext())
+							throw;
+					}
+					catch (WebException)
+					{
+						if (!servers.MoveNext())
+							throw;
+					}
+					catch (HttpRequestException)
+					{
+						if (!servers.MoveNext())
+							throw;
+					}
 				}
 			}
 		}
@@ -131,10 +165,10 @@ namespace Prtg.Sensor.Couchbase
 						Channel = mapping.Name,
 						Unit = mapping.Unit,
 						CustomUnit = mapping.CustomUnit,
-						Value = sum/count
+						Value = sum / count
 					};
 
-					w.WriteLine("Name: {0} Count: {1} Value: {2}",  property.Name, count, sum / count);
+					w.WriteLine("Name: {0} Count: {1} Value: {2}", property.Name, count, sum / count);
 				}
 			}
 		}
@@ -142,7 +176,7 @@ namespace Prtg.Sensor.Couchbase
 
 	public class RequestPrams
 	{
-		public string ServerAndPort { get; set; }
+		public List<string> ServerAndPort { get; set; }
 		public string User { get; set; }
 		public string Password { get; set; }
 		public string BucketName { get; set; }
