@@ -63,24 +63,27 @@ namespace Prtg.Sensor.Couchbase
 			{
 				if (!servers.MoveNext())
 					throw new ArgumentException("No Servers specified", "request");
+
 				while (true)
 				{
-					var client = new HttpClient
-					{
-						// http://localhost:8091/pools/default/buckets/TestClient_account/stats?zoom=minute
-						BaseAddress = new Uri("http://" + request.ServerAndPort + "/pools/default/buckets/")
-					};
-
-					client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(request.User + ":" + request.Password)));
 					try
 					{
-						using (var result = await client.GetAsync(Uri.EscapeUriString(request.BucketName) + @"/stats?zoom=minute"))
+						using (var client = new HttpClient
 						{
-							result.EnsureSuccessStatusCode();
-							using (var s = await result.Content.ReadAsStreamAsync())
+							BaseAddress = new Uri("http://" + servers.Current + "/pools/default/buckets/")
+						})
+						{
+							var auth = Convert.ToBase64String(Encoding.ASCII.GetBytes(request.User + ":" + request.Password));
+							client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", auth);
+
+							using (var result = await client.GetAsync(Uri.EscapeUriString(request.BucketName) + @"/stats?zoom=minute"))
 							{
-								var reader = new JsonTextReader(new StreamReader(s));
-								return new Prtg { Results = (ReadData(JToken.Load(reader)).ToList()) };
+								result.EnsureSuccessStatusCode();
+								using (var s = await result.Content.ReadAsStreamAsync())
+								{
+									var reader = new JsonTextReader(new StreamReader(s));
+									return new Prtg { Results = (ReadData(JToken.Load(reader)).ToList()) };
+								}
 							}
 						}
 					}
@@ -160,15 +163,22 @@ namespace Prtg.Sensor.Couchbase
 						}
 					}
 
+					var avgValue = sum / count;
+					if (!mapping.Float)
+						avgValue = Math.Round(avgValue);
+
 					yield return new PrtgResult
 					{
 						Channel = mapping.Name,
 						Unit = mapping.Unit,
 						CustomUnit = mapping.CustomUnit,
-						Value = sum / count
+						Float = mapping.Float ? 1 : 0,
+						Value = avgValue,
+						SpeedSize = mapping.SpeedSize,
+						VolumeSize = mapping.VolumeSize
 					};
 
-					w.WriteLine("Name: {0} Count: {1} Value: {2}", property.Name, count, sum / count);
+					w.WriteLine("Name: {0} Count: {1} Value: {2}", property.Name, count, avgValue);
 				}
 			}
 		}

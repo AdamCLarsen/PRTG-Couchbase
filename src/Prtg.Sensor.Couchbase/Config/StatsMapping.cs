@@ -39,6 +39,8 @@ namespace Prtg.Sensor.Couchbase.Config
 				}
 			}
 
+			[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
+			public bool Float { get; set; }
 
 			[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
 			public PrtgSize? SpeedSize { get; set; }
