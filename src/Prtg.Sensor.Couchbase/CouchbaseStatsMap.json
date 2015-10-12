@@ -9,12 +9,15 @@
       "Name": "free RAM",
       "Unit": "BytesMemory"
     },
-    "cpu_utilization_rate": { "Name": "CPU utilization %" },
+    "cpu_utilization_rate": {
+      "Name": "CPU utilization %",
+      "Unit": "Percent"
+    },
     "minor_faults": { "Name": "Minor page faults" },
     "major_faults": { "Name": "Major page faults" },
     "page_faults": { "Name": "Page faults" },
     "curr_connections": { "Name": "connections" },
-    "rest_requests": { "Name": "port 8091 reqs/sec" },
+    "rest_requests": { "Name": "port reqs/sec" },
     "hibernated_requests": { "Name": "idle streaming requests" },
     "hibernated_waked": { "Name": "streaming wakeups/sec" },
     // Summary
@@ -24,43 +27,95 @@
     "cmd_set": { "Name": "sets per sec." },
     "delete_hits": { "Name": "deletes per sec." },
     "cas_hits": { "Name": "CAS ops per sec." },
-    "vb_active_resident_items_ratio": { "Name": "active docs resident %" },
-    "curr_items": { "Name": "items" },
+    "curr_items": {
+      "Name": "Active Items",
+      "CustomUnit": "Docs"
+    },
     "ep_tmp_oom_errors": { "Name": "temp OOM per sec." },
     "ep_mem_low_wat": { "Name": "low water mark" },
     "ep_mem_high_wat": { "Name": "high water mark" },
     "mem_used": { "Name": "memory used" },
-    "ep_ops_create": { "Name": "disk creates per sec." },
     "ep_ops_update": { "Name": "disk updates per sec." },
     "ep_bg_fetched": { "Name": "disk reads per sec." },
     "disk_write_queue": { "Name": "disk write queue" },
     "couch_docs_data_size": { "Name": "docs data size" },
-    "couch_docs_actual_disk_size": { "Name": "docs total disk size" },
-    "couch_docs_fragmentation": { "Name": "docs fragmentation %" },
-    "couch_total_disk_size": { "Name": "total disk size" },
-    "couch_views_data_size": { "Name": "views data size" },
-    "couch_views_actual_disk_size": { "Name": "views total disk size" },
-    "couch_views_fragmentation": { "Name": "views fragmentation %" },
+    "couch_docs_actual_disk_size": {
+      "Name": "docs total disk size",
+      "Unit": "BytesFile"
+    },
+    "couch_docs_fragmentation": {
+      "Name": "docs fragmentation %",
+      "Unit": "Percent"
+    },
+    "couch_total_disk_size": {
+      "Name": "total disk size",
+      "Unit": "BytesDisk"
+    },
+    "couch_views_data_size": {
+      "Name": "views data size",
+      "Unit": "BytesFile"
+    },
+    "couch_views_actual_disk_size": {
+      "Name": "views total disk size",
+      "Unit": "BytesFile"
+    },
+    "couch_views_fragmentation": {
+      "Name": "views fragmentation %",
+      "Unit": "Percent"
+    },
     "couch_views_ops": { "Name": "view reads per sec." },
     "xdc_ops": { "Name": "Incoming XDCR ops/sec." },
     "replication_changes_left": { "Name": "outbound XDCR mutations" },
-    "ep_dcp_replica_items_remaining": { "Name": "Intra-Replication Queue" },
     // vBucket Resources
-    "vb_active_num": { "Name": "vBuckets" },
-    "vb_replica_num": { "Name": "vBuckets" },
-    "vb_pending_num": { "Name": "vBuckets" },
-    "ep_vb_total": { "Name": "vBuckets" },
-    "curr_items": { "Name": "items" },
-    "vb_replica_curr_items": { "Name": "items" },
-    "vb_pending_curr_items": { "Name": "items" },
-    "curr_items_tot": { "Name": "items" },
-    "vb_active_resident_items_ratio": { "Name": "resident %" },
-    "vb_replica_resident_items_ratio": { "Name": "resident %" },
-    "vb_pending_resident_items_ratio": { "Name": "resident %" },
-    "ep_resident_items_rate": { "Name": "resident %" },
+    "vb_active_num": {
+      "Name": "Active Buckets",
+      "CustomUnit": "Buckets"
+    },
+    "vb_replica_num": {
+      "Name": "Replica  Buckets",
+      "CustomUnit": "Buckets"
+    },
+    "vb_pending_num": {
+      "Name": "Pending Buckets",
+      "CustomUnit": "Buckets"
+    },
+    "ep_vb_total": {
+      "Name": "Total Buckets",
+      "CustomUnit": "Buckets"
+    },
+    "vb_replica_curr_items": {
+      "Name": "Replica Items",
+      "CustomUnit": "Docs"
+    },
+    "vb_pending_curr_items": {
+      "Name": "Pending Items",
+      "CustomUnit": "Docs"
+    },
+    "curr_items_tot": {
+      "Name": "Total Items",
+      "CustomUnit": "Docs"
+    },
+    // Summary as well
+    "vb_active_resident_items_ratio": {
+      "Name": "resident %",
+      "Unit": "Percent"
+    },
+    "vb_replica_resident_items_ratio": {
+      "Name": "resident %",
+      "Unit": "Percent"
+    },
+    "vb_pending_resident_items_ratio": {
+      "Name": "resident %",
+      "Unit": "Percent"
+    },
+    "ep_resident_items_rate": {
+      "Name": "resident %",
+      "Unit": "Percent"
+    },
     "vb_active_ops_create": { "Name": "new items per sec." },
     "vb_replica_ops_create": { "Name": "new items per sec." },
     "vb_pending_ops_create": { "Name": "new items per sec." },
+    // Summary as well
     "ep_ops_create": { "Name": "new items per sec." },
     "vb_active_eject": { "Name": "ejections per sec." },
     "vb_replica_eject": { "Name": "ejections per sec." },
@@ -125,6 +180,8 @@
     "ep_dcp_xdcr_producer_count": { "Name": "DCP senders" },
     "ep_dcp_views_producer_count": { "Name": "DCP senders" },
     "ep_dcp_other_producer_count": { "Name": "DCP senders" },
+
+    // Summary as well
     "ep_dcp_replica_items_remaining": { "Name": "items remaining" },
     "ep_dcp_xdcr_items_remaining": { "Name": "items remaining" },
     "ep_dcp_views_items_remaining": { "Name": "items remaining" },
@@ -148,7 +205,6 @@
     // Incoming XDCR Operations
     "ep_num_ops_get_meta": { "Name": "metadata reads per sec." },
     "ep_num_ops_set_meta": { "Name": "sets per sec." },
-    "ep_num_ops_del_meta": { "Name": "deletes per sec." },
-    "xdc_ops": { "Name": "total ops per sec." }
+    "ep_num_ops_del_meta": { "Name": "deletes per sec." }
   }
 }
