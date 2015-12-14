@@ -1,0 +1,33 @@
+﻿{
+  "Channels": {
+    // vBucket Resources
+    "vb_active_num": {
+      "Name": "Active Buckets",
+      "CustomUnit": "Buckets"
+    },
+    "vb_replica_num": {
+      "Name": "Replica  Buckets",
+      "CustomUnit": "Buckets"
+    },
+    "vb_pending_num": {
+      "Name": "Pending Buckets",
+      "CustomUnit": "Buckets"
+    },
+    "ep_vb_total": {
+      "Name": "Total Buckets",
+      "CustomUnit": "Buckets"
+    },
+    "vb_replica_curr_items": {
+      "Name": "Replica Items",
+      "CustomUnit": "Docs"
+    },
+    "vb_pending_curr_items": {
+      "Name": "Pending Items",
+      "CustomUnit": "Docs"
+    },
+    "curr_items_tot": {
+      "Name": "Total Items",
+      "CustomUnit": "Docs"
+    }
+  }
+}

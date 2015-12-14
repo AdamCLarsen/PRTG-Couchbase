@@ -1,0 +1,22 @@
+﻿{
+  "Channels": {
+    "ops": { "Name": "ops per second" },
+
+    // Memory
+    "ep_cache_miss_rate": { "Name": "cache miss ratio" },
+    "ep_tmp_oom_errors": { "Name": "temp OOM per sec." },
+    "ep_mem_high_wat": { "Name": "high water mark" },
+    "mem_used": { "Name": "memory used" },
+
+    // Disk
+    "disk_write_queue": { "Name": "disk write queue" }, // Writes that are waiting in Memory to be written to disk.
+    "couch_docs_fragmentation": {
+      "Name": "docs fragmentation %",
+      "Unit": "Percent"
+    },
+    "couch_views_fragmentation": {
+      "Name": "views fragmentation %",
+      "Unit": "Percent"
+    }
+  }
+}

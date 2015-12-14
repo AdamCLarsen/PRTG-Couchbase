@@ -1,0 +1,9 @@
+﻿{
+  "Channels": {
+    "xdc_ops": { "Name": "Incoming XDCR ops/sec." },
+    "ep_dcp_replica_items_remaining": { "Name": "replica" },
+    "ep_dcp_xdcr_items_remaining": { "Name": "XDCR" },
+    "ep_dcp_views_items_remaining": { "Name": "views" },
+    "ep_dcp_other_items_remaining": { "Name": "other" }
+  }
+}

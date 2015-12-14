@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -21,17 +23,60 @@ namespace Prtg.Sensor.Couchbase
 		private static StatsMappings _mappings;
 		private static void Main(string[] args)
 		{
+			if (args.Length != 4)
+			{
+				if (args.Length > 0 && args[0].Equals("protect"))
+				{
+					Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+					ConfigurationSection section = config.GetSection("connectionStrings");
+					{
+						if (!section.SectionInformation.IsProtected)
+						{
+							if (!section.ElementInformation.IsLocked)
+							{
+								section.SectionInformation.ProtectSection("DataProtectionConfigurationProvider");
+								section.SectionInformation.ForceSave = true;
+								config.Save(ConfigurationSaveMode.Full);
+
+								Console.WriteLine();
+								Console.WriteLine("Encrypted Configuration File");
+							}
+						}
+					}
+				}
+				else
+				{
+					Console.WriteLine("Missing Required arguments");
+					Console.WriteLine("<cluster> bucket <bucket name> <mapping File>");
+					Console.WriteLine("Examples:");
+					Console.WriteLine("localhost bucket beer-sample basic");
+				}
+
+				Environment.Exit(2);
+			}
+
+			if (!args[1].Equals("bucket", StringComparison.OrdinalIgnoreCase))
+			{
+				Console.Write("Only Bucket view is currently supported.");
+				Environment.Exit(2);
+			}
+
 			try
 			{
 				var location = Path.GetDirectoryName(System.Reflection.Assembly.GetAssembly(typeof(Program)).Location);
-				_mappings = JsonConvert.DeserializeObject<StatsMappings>(File.ReadAllText(Path.Combine(location, "CouchbaseStatsMap.json")));
+				// Remove anything that may have been put in the file name that shouldn't be there.
+				// The configuration file must be in the same folder as the .exe, and be a json files.
+				var configurationFile = Path.Combine(location, Path.GetFileNameWithoutExtension(args[3] + ".json"));
 
+				_mappings = JsonConvert.DeserializeObject<StatsMappings>(File.ReadAllText(configurationFile));
+
+				var connectionString = new DbConnectionStringBuilder { ConnectionString = ConfigurationManager.ConnectionStrings[args[0]].ConnectionString };
 				var result = Read(new RequestPrams
 				{
-					ServerAndPort = new List<string> { "localhost:8091" },
-					BucketName = "beer-sample",
-					User = "Administrator",
-					Password = "password"
+					ServerAndPort = connectionString["servers"].ToString().Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList(),
+					BucketName = args[2],
+                    User = connectionString["user"].ToString(),
+					Password = connectionString["password"].ToString(),
 				}).Result;
 
 				result.WriteToConsole();
@@ -62,7 +107,7 @@ namespace Prtg.Sensor.Couchbase
 			using (var servers = request.ServerAndPort.GetEnumerator())
 			{
 				if (!servers.MoveNext())
-					throw new ArgumentException("No Servers specified", "request");
+					throw new ArgumentException("No Servers specified", nameof(request));
 
 				while (true)
 				{
@@ -70,7 +115,7 @@ namespace Prtg.Sensor.Couchbase
 					{
 						using (var client = new HttpClient
 						{
-							BaseAddress = new Uri("http://" + servers.Current + "/pools/default/buckets/")
+							BaseAddress = new Uri(servers.Current + "/pools/default/buckets/")
 						})
 						{
 							var auth = Convert.ToBase64String(Encoding.ASCII.GetBytes(request.User + ":" + request.Password));
@@ -112,7 +157,7 @@ namespace Prtg.Sensor.Couchbase
 		private static IEnumerable<PrtgResult> ReadData(JToken token)
 		{
 			var sampleToken = token.SelectToken(@"op.samples", true);
-			using (var s = File.Create("output.txt"))
+			using (var s = File.Create("output.txt")) // write the results to disk for debugging.
 			using (var w = new StreamWriter(s))
 			{
 				foreach (var child in sampleToken.Children())
@@ -134,13 +179,9 @@ namespace Prtg.Sensor.Couchbase
 					}
 
 					// Calculate the current value, Couchbase by default captures every second, 
-					//  and we will assume here that Zoom is at to minute
+					//  and we will assume here that Zoom is at a minute
 					//
-					// We have 4 ways we can return the values
-					//  - Average value over the last minute (Default)
-					//  - Minimum value over the last minute
-					//  - Maximum value over the last minute
-					//  - The most recent value (not yet how this set is ordered)
+					// For now we are going to only support averaging the values.
 					var count = 0;
 					var sum = 0D;
 
