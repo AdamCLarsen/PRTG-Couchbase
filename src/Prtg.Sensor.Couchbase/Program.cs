@@ -157,9 +157,9 @@ namespace Prtg.Sensor.Couchbase
 		private static IEnumerable<PrtgResult> ReadData(JToken token)
 		{
 			var sampleToken = token.SelectToken(@"op.samples", true);
-			using (var s = File.Create("output.txt")) // write the results to disk for debugging.
-			using (var w = new StreamWriter(s))
-			{
+			//using (var s = File.Create("output.txt")) // write the results to disk for debugging.
+			//using (var w = new StreamWriter(s))
+			//{
 				foreach (var child in sampleToken.Children())
 				{
 					var property = child as JProperty;
@@ -219,8 +219,8 @@ namespace Prtg.Sensor.Couchbase
 						VolumeSize = mapping.VolumeSize
 					};
 
-					w.WriteLine("Name: {0} Count: {1} Value: {2}", property.Name, count, avgValue);
-				}
+					//w.WriteLine("Name: {0} Count: {1} Value: {2}", property.Name, count, avgValue);
+				//}
 			}
 		}
 	}
