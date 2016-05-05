@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace Prtg.Sensor.Couchbase.Tests
 {
-	public class ScrapBucketAnalyticsHtml
+	public class ScrapeBucketAnalyticsHtml
 	{
 		[Test]
 		public void Run()
